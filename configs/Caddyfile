@@ -1,0 +1,86 @@
+{
+	storage file_system /owntracks-storage/caddy-store
+	admin off
+}
+
+# Host is auto-added on boot
+INSERT_SITE_ADDRESS
+
+encode zstd gzip
+header {
+	server: "OwnTracks"
+	X-Content-Type-Options: "nosniff"
+	Strict-Transport-Security: "max-age=31536000; preload"
+	Cross-Origin-Embedder-Policy: "require-corp"
+	Cross-Origin-Opener-Policy: "same-origin"
+	Cross-Origin-Resource-Policy: "same-origin"
+	Permissions-Policy: "camera=(),microphone=(),payment=()"
+}
+
+redir /auth /auth/
+handle /auth/* {
+	reverse_proxy localhost:9091
+}
+
+@api path /api /api/* /recorder/api /recorder/api/*
+handle @api {
+	uri strip_prefix /recorder
+	reverse_proxy localhost:8083
+}
+
+@pub path /pub /pub/* /recorder/pub /recorder/pub/*
+handle @pub {
+	uri strip_prefix /recorder
+	reverse_proxy localhost:8083
+}
+
+redir /view /view/ 301
+handle /view/* {
+	header {
+		Content-Security-Policy: "default-src 'none'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; img-src 'self'; manifest-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'none'"
+	}
+	reverse_proxy localhost:8083
+}
+
+redir /recorder /recorder/ 301
+handle /recorder/* {
+	header {
+		Content-Security-Policy: "default-src 'none'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; img-src 'self'; manifest-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'none'"
+	}
+	forward_auth localhost:9091 {
+		uri /api/verify?rd=https://INSERT_SITE_ADDRESS/auth/
+		copy_headers Remote-User Remote-Groups Remote-Name Remote-Email
+	}
+
+	uri strip_prefix /recorder
+	root * /recorder/htdocs
+	file_server
+}
+
+redir /frontend /frontend/ 301
+handle /frontend/* {
+	header {
+		Content-Security-Policy: "default-src 'none'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; img-src 'self'; manifest-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'none'"
+	}
+	forward_auth localhost:9091 {
+		uri /api/verify?rd=https://INSERT_SITE_ADDRESS/auth/
+		copy_headers Remote-User Remote-Groups Remote-Name Remote-Email
+	}
+
+	uri strip_prefix /frontend
+	root * /frontend
+	file_server
+}
+
+handle {
+	header {
+		Content-Security-Policy: "default-src 'none'; style-src 'self'; script-src 'self'; img-src 'self'; manifest-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'none'"
+	}
+	forward_auth localhost:9091 {
+		uri /api/verify?rd=https://INSERT_SITE_ADDRESS/auth/
+		copy_headers Remote-User Remote-Groups Remote-Name Remote-Email
+	}
+
+	root * /dashboard
+	file_server
+}

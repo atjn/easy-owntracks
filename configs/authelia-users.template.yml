@@ -1,0 +1,6 @@
+users:
+  INSERT_USERNAME:
+    displayname: INSERT_USERNAME
+    password: INSERT_HASHED_PASSWORD
+    groups:
+      - administrator
