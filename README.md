@@ -4,9 +4,13 @@
 
 After running the Dockerfile, the image needs three things:
 
-Port 80 -> 80
+Port 80/tcp -> 80
 
-Port 443 -> 443
+Port 80/udp -> 80
+
+Port 443/tcp -> 443
+
+Port 443/udp -> 443
 
 Directory /owntracks-storage -> /owntracks-storage
 

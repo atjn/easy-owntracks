@@ -63,7 +63,7 @@ body {
 	padding: 2vmin;
 	border: 1px solid var(--item-border-color);
 	background-color: var(--item-color);
-	transition: backgroun .2s ease-out;
+	transition: background-color .2s ease-out;
 }
 
 #tiles > a:is(:focus, :focus-visible, :hover) {

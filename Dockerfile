@@ -49,8 +49,6 @@ WORKDIR /
 # https://hub.docker.com/_/alpine/tags
 FROM docker.io/alpine:3.16
 
-VOLUME "/owntracks-storage"
-
 RUN apk add --no-cache \
 	jq \
 	curl \
@@ -68,6 +66,7 @@ COPY /dashboard /dashboard
 
 COPY --from=builder /recorder/usr /usr
 COPY --from=builder /recorder/recorder /recorder
+RUN echo "var apiKey = '';" > /recorder/htdocs/static/apikey.js
 
 COPY --from=builder /src/frontend/dist /frontend
 RUN ln -s /configs/frontend.conf.js /frontend/config/config.js
@@ -78,9 +77,11 @@ COPY entrypoint.sh /usr/sbin/entrypoint.sh
 
 RUN chmod +x /usr/sbin/*.sh
 
-EXPOSE 80
-EXPOSE 443
+EXPOSE 80/tcp
+EXPOSE 80/udp
+EXPOSE 443/tcp
+EXPOSE 443/udp
 
-# ENV OTR_CAFILE=/etc/ssl/cert.pem
+VOLUME "/owntracks-storage"
 
 ENTRYPOINT ["/usr/sbin/entrypoint.sh"]
