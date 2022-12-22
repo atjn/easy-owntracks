@@ -1,6 +1,7 @@
 {
 	storage file_system /owntracks-storage/caddy-store
 	admin off
+	debug
 }
 
 # Host is auto-added on boot
@@ -8,7 +9,7 @@ INSERT_SITE_ADDRESS
 
 route {
 
-	encode zstd gzip
+	encode gzip
 	header {
 		server: "OwnTracks"
 		X-Content-Type-Options: "nosniff"
@@ -33,9 +34,20 @@ route {
 		reverse_proxy localhost:9091
 	}
 
-	@api path /api /api/* /recorder/api /recorder/api/*
+	@api path /api/* /recorder/api/*
 	handle @api {
 		uri strip_prefix /recorder
+
+		handle /api/extended/* {
+			uri strip_prefix /api/extended
+			reverse_proxy localhost:491 {
+				transport fastcgi {
+					root /
+					env REQUEST_URI {uri} # Without this, Caddy doesn't actually strip the URI that is passed through fastcgi
+				}
+			}
+		}
+
 		reverse_proxy localhost:8083
 	}
 

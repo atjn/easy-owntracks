@@ -1,0 +1,13 @@
+
+body, a, a:visited {
+	font-family: Helvetica, sans-serif;
+	color: #3f72b5;
+}
+
+ul {
+	list-style-type: none;
+}
+
+li > * {
+	display: inline;
+}
