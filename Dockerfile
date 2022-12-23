@@ -1,8 +1,8 @@
  # https://hub.docker.com/_/alpine/tags
-FROM docker.io/alpine:3.16 AS builder
+FROM docker.io/alpine:3.17 AS builder
 
 # https://github.com/owntracks/recorder/tags
-ARG RECORDER_VERSION=0.9.2
+ARG RECORDER_VERSION=0.9.3
 # ARG RECORDER_VERSION=master
 
 # https://github.com/owntracks/frontend/tags
@@ -53,7 +53,7 @@ WORKDIR /
 
 
 # https://hub.docker.com/_/alpine/tags
-FROM docker.io/alpine:3.16
+FROM docker.io/alpine:3.17
 
 RUN apk add --no-cache \
 	jq \

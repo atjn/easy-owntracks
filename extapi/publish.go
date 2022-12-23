@@ -79,11 +79,11 @@ func getLast() []map[string]interface{} {
 	if err != nil {
 		fmt.Errorf("extended api: fail to unmarshal json: %w", err)
 	}
-	//log.Printf("INFO: jsonMap, %s", jsonMap)
+	//log.Printf("INFO: jsonMap, %s\n", jsonMap)
 
 	// results list
 	//resultList := jsonMap["results"].([]interface{})
-	//log.Printf("INFO: resultList, %s", resultList)
+	//log.Printf("INFO: resultList, %s\n", resultList)
 
 	responses := []map[string]interface{}{}
 

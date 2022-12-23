@@ -2,28 +2,25 @@ package main
 
 import (
 	"fmt"
-	//	"bufio"
-	"github.com/ipfs/go-ds-leveldb"
 	"net"
 	"net/http"
 	"net/http/fcgi"
 )
 
-var RECORDER_ENDPOINT string = "http://localhost:8083"
+const RECORDER_ENDPOINT string = "http://localhost:8083"
 
-var friendsDB *leveldb.Datastore
+var friendsStore *FileStore
 
 func main() {
 
 	fmt.Println("extended api: Starting")
 
-	friendsDB, storeError := leveldb.NewDatastore("/owntracks-storage/extapi-store/friendsDB", nil)
+	friendsStore, storeError := NewFileStore("/owntracks-storage/extapi-store/friends.json")
 	if storeError != nil {
-		fmt.Errorf("extended api: fatal error: %w", storeError)
+		fmt.Errorf("extended api: fatal error when setting up friendsStore: %w", storeError)
 	}
-	defer friendsDB.Close()
 
-	http.HandleFunc("/0/friends", handleFriends)
+	http.Handle("/0/friends", &handleFriends{friendsStore: friendsStore})
 	http.HandleFunc("/0/publish", handlePublish)
 
 	listener, listenError := net.Listen("tcp", ":491")

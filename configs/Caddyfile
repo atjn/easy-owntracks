@@ -4,7 +4,7 @@
 	debug
 }
 
-# Host is auto-added on boot
+# Site address is auto-added on boot:
 INSERT_SITE_ADDRESS
 
 route {
@@ -14,7 +14,7 @@ route {
 		server: "OwnTracks"
 		X-Content-Type-Options: "nosniff"
 		Strict-Transport-Security: "max-age=31536000; preload"
-		# Cannot be enabled because the openstreetmap tiles don't support CORP (as of 2022):
+		# Cannot be enabled because the openstreetmap tiles don't support CORP (last checked jan 2023):
 		# Cross-Origin-Embedder-Policy: "require-corp"
 		Cross-Origin-Opener-Policy: "same-origin"
 		Cross-Origin-Resource-Policy: "same-origin"

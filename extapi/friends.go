@@ -1,21 +1,23 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/ipfs/go-datastore"
 	"io"
 	"net/http"
 )
 
-func handleFriends(w http.ResponseWriter, r *http.Request) {
+type handleFriends struct {
+	friendsStore *FileStore
+}
+
+func (handler *handleFriends) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	user := getUser(r)
 
 	if r.Method == "GET" {
 
-		friendsList := getFriends(user)
+		friendsList := getFriends(handler.friendsStore, user)
 
 		encoder := json.NewEncoder(w)
 		encoder.Encode(friendsList)
@@ -29,21 +31,17 @@ func handleFriends(w http.ResponseWriter, r *http.Request) {
 
 		friendsList := parseFriendsString(friendsString)
 
-		setFriends(friendsList, user)
+		setFriends(handler.friendsStore, friendsList, user)
 
 	}
 
 }
 
-func getFriends(user string) []string {
+func getFriends(friendsStore *FileStore, user string) []string {
 
-	hasUser := Has(user)
+	friendsList, hasUser := friendsStore.Get(user)
 
 	if user != "" && hasUser {
-
-		friendsString := Get(user)
-
-		friendsList := parseFriendsString(friendsString)
 
 		return friendsList
 
@@ -53,7 +51,7 @@ func getFriends(user string) []string {
 
 }
 
-func setFriends(friendsList []string, user string) {
+func setFriends(friendsStore *FileStore, friendsList []string, user string) {
 
 	if user == "" {
 		return
@@ -61,20 +59,21 @@ func setFriends(friendsList []string, user string) {
 
 	if len(friendsList) > 0 {
 
-		friendsString, err := json.Marshal(friendsList)
+		err := friendsStore.Set(user, friendsList)
 		if err != nil {
-			fmt.Errorf("extended api: failed to build database entry: %w", err)
+			fmt.Errorf("extended api: failed to save to database: %w", err)
 		}
 
-		Put(user, friendsString)
-
-		fmt.Printf("extended api: User %s is now friends with: %s", user, friendsString)
+		fmt.Printf("extended api: User %s is now friends with: %s\n", user, friendsList)
 
 	} else {
 
-		Delete(user)
+		err := friendsStore.Delete(user)
+		if err != nil {
+			fmt.Errorf("extended api: failed to delete from database: %w", err)
+		}
 
-		fmt.Printf("extended api: User %s no longer has any friends.", user)
+		fmt.Printf("extended api: User %s no longer has any friends.\n", user)
 
 	}
 
@@ -100,56 +99,6 @@ func getUser(r *http.Request) string {
 		fmt.Errorf("extended api: fatal error: received a request to change friends, but no user was specified")
 	}
 
-	/*
-		users := r.Header.Get("X-Limit-U")
-		if len(users) == 1 {
-			return users[0]
-		} else if len(users) <= 0 {
-			fmt.Errorf("extended api: fatal error: received a request to change friends, but no user was specified")
-		} else {
-			fmt.Errorf("extended api: fatal error: more than one user is not accepted")
-		}
-	*/
-
 	return user
 
-}
-
-func Get(key string) []byte {
-	userKey := datastore.NewKey(key)
-	ctx := context.Background()
-	friendsString, dberr := friendsDB.Get(ctx, userKey)
-	if dberr != nil {
-		fmt.Errorf("extended api: failed to read database entry: %w", dberr)
-	}
-	return friendsString
-}
-
-func Put(key string, value []byte) {
-	userKey := datastore.NewKey(key)
-	ctx := context.Background()
-	dberr := friendsDB.Put(ctx, userKey, value)
-	if dberr != nil {
-		fmt.Errorf("extended api: failed to write database entry: %w", dberr)
-	}
-}
-
-func Has(key string) bool {
-	fmt.Printf("test: %s", key)
-	userKey := datastore.NewKey(key)
-	ctx := context.Background()
-	doeshave, dberr := friendsDB.Has(ctx, userKey)
-	if dberr != nil {
-		fmt.Errorf("extended api: failed to read database entry: %w", dberr)
-	}
-	return doeshave
-}
-
-func Delete(key string) {
-	userKey := datastore.NewKey(key)
-	ctx := context.Background()
-	dberr := friendsDB.Delete(ctx, userKey)
-	if dberr != nil {
-		fmt.Errorf("extended api: failed to remove database entry: %w", dberr)
-	}
 }

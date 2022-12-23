@@ -1,2 +1,6 @@
+# Ignore testing files for Docker
 owntracks-storage
+*.tar
+
+# Ignore the external api test files
 /extapi/extapi
